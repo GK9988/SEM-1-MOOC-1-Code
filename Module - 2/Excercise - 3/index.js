@@ -1,45 +1,34 @@
-// module imports
-import Mongo from "mongodb";
-import assert from "assert";
+import Mongoose from "mongoose";
+import Dishes from "./models/dishes.js";
 
-// app Config
-const MongoClient = Mongo.MongoClient;
-const dbUrl = "mongodb://localhost:27017";
-const dbName = "conFusion";
+const url = "mongodb://localhost:27017/conFusion";
 
-// DB Connection
+const connect = Mongoose.connect(url);
 
-MongoClient.connect(dbUrl, (err, client) => {
-  assert.equal(err, null);
-  console.log("Connected correctly to the server");
+connect.then((db) => {
+  console.log("Connected to the database");
 
-  const db = client.db(dbName);
+  var newDish = Dishes({
+    name: "Rajma Rice",
+    description: "My favourite Dish",
+  });
 
-  const collection = db.collection("dishes");
+  newDish
+    .save()
+    .then((dish) => {
+      console.log(dish);
 
-  collection.insertOne(
-    {
-      name: "Ayush Srivastava",
-      description: "He is RAW Venom / ADF / DAT0R Naurto",
-    },
-    (err, result) => {
-      assert.equal(err, null);
+      return Dishes.find({}).exec();
+    })
+    .then((dishes) => {
+      console.log(dishes);
 
-      console.log("After Insert: \n");
-      console.log(result.acknowledged);
-
-      collection.find({}).toArray((err, docs) => {
-        assert.equal(err, null);
-
-        console.log("Found: \n");
-        console.log(docs);
-
-        db.dropCollection("dishes", (err, result) => {
-          assert.equal(err, null);
-
-          client.close();
-        });
-      });
-    }
-  );
+      return Dishes.remove({});
+    })
+    .then(() => {
+      return Mongoose.connection.close();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
