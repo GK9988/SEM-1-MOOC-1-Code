@@ -8,20 +8,34 @@ const connect = Mongoose.connect(url);
 connect.then((db) => {
   console.log("Connected to the database");
 
-  var newDish = Dishes({
+  Dishes.create({
     name: "Rajma Rice",
     description: "My favourite Dish",
-  });
+  })
 
-  newDish
-    .save()
     .then((dish) => {
       console.log(dish);
 
-      return Dishes.find({}).exec();
+      return Dishes.findByIdAndUpdate(dish._id, {
+        $set: {
+          description: "My favourite dish updated",
+        },
+        new: true,
+      }).exec();
     })
-    .then((dishes) => {
-      console.log(dishes);
+    .then((dish) => {
+      console.log(dish);
+
+      dish.comments.push({
+        rating: 5,
+        comment: "My favourite dish ",
+        author: "Garv Khurana",
+      });
+
+      return dish.save();
+    })
+    .then((dish) => {
+      console.log(dish);
 
       return Dishes.remove({});
     })
